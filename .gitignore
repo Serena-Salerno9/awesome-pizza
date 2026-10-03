@@ -43,3 +43,16 @@ Thumbs.db
 .nx/migrate-runs
 .claude/worktrees
 .claude/settings.local.json
+
+# .NET
+**/bin/
+**/obj/
+/artifacts/
+
+# Visual Studio (local IDE state and per-user settings)
+.vs/
+*.user
+*.suo
+
+vite.config.*.timestamp*
+vitest.config.*.timestamp*
