@@ -1,4 +1,5 @@
 ﻿using Exceptions;
+using Domain.Entity.Catalog;
 
 namespace Domain.Tests;
 

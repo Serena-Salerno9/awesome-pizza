@@ -1,7 +1,7 @@
 using System;
 using Exceptions;
 
-namespace Domain;
+namespace Domain.Entity.Catalog;
 
 public class Pizza
 {
