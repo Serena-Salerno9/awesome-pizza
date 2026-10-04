@@ -3,10 +3,10 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Domain.Catalog;
 using Domain.Exceptions;
+using Domain.Kitchen;
 using Microsoft.EntityFrameworkCore;
 
 namespace Domain.Orders;
-
 
 [Index(nameof(BusinessDate), nameof(DailyNumber), IsUnique = true)]
 [Index(nameof(Status), nameof(BusinessDate), nameof(DailyNumber))]
@@ -18,34 +18,31 @@ public class Order
 
   [DatabaseGenerated(DatabaseGeneratedOption.None)]
   public Guid Id { get; private set; }
-
   public DateOnly BusinessDate { get; private set; }
-
   public int DailyNumber { get; private set; }
-
   [NotMapped]
   public string Code => DailyNumber.ToString(CodeFormat);
 
   [Column(TypeName = "nvarchar(20)")]
   public OrderStatus Status { get; private set; }
-
-  [NotMapped]
-  public int PizzaCount => Lines.Sum(l => l.Quantity);
-
   public DateTimeOffset CreatedAt { get; private set; }
-
   public DateTimeOffset? StartedAt { get; private set; }
-
   public DateTimeOffset? ReadyAt { get; private set; }
 
-  [ConcurrencyCheck]
-  public Guid Version { get; private set; }
+  public Guid? FkWorkstation { get; private set; }
+  [ForeignKey(nameof(FkWorkstation))]
+  [DeleteBehavior(DeleteBehavior.Restrict)]
+  public virtual Workstation? FkWorkstationNavigation { get; private set; }
 
   [InverseProperty(nameof(OrderLine.FkOrderNavigation))]
   public virtual ICollection<OrderLine> Lines { get; private set; } = [];
-
+  [NotMapped]
+  public int PizzaCount => Lines.Sum(l => l.Quantity);
   [NotMapped]
   public decimal Total => Lines.Sum(l => l.LineTotal);
+
+  [ConcurrencyCheck]
+  public Guid Version { get; private set; }
 
   private Order() { }
 
@@ -64,20 +61,12 @@ public class Order
     Id = Guid.NewGuid();
     BusinessDate = businessDate;
     DailyNumber = dailyNumber;
-    CreatedAt = now;
     Status = OrderStatus.Queued;
+    CreatedAt = now;
     Version = Guid.NewGuid();
 
     foreach (var (pizza, quantity) in items)
-    {
-      if (pizza is null)
-        throw new DomainException("Pizza is required.");
-
-      if (!pizza.IsOnMenu)
-        throw new DomainException($"Pizza '{pizza.Name}' is not currently on the menu.");
-
-      Lines.Add(new OrderLine(Id, pizza.Name, pizza.Price, quantity));
-    }
+      AddLine(pizza, quantity);
 
     if (Lines.Count == 0)
       throw new DomainException("An order must contain at least one pizza.");
@@ -86,9 +75,13 @@ public class Order
       throw new DomainException($"An order cannot contain more than {MaxPizzasPerOrder} pizzas.");
   }
 
-  public void StartPreparation(DateTimeOffset now)
+  public void StartPreparation(Guid workstationId, DateTimeOffset now)
   {
+    if (workstationId == Guid.Empty)
+      throw new DomainException("Workstation is required.");
+
     TransitionTo(OrderStatus.InPreparation);
+    FkWorkstation = workstationId;
     StartedAt = now;
   }
 
@@ -96,6 +89,17 @@ public class Order
   {
     TransitionTo(OrderStatus.Ready);
     ReadyAt = now;
+  }
+
+  private void AddLine(Pizza pizza, int quantity)
+  {
+    if (pizza is null)
+      throw new DomainException("Pizza is required.");
+
+    if (!pizza.IsOnMenu)
+      throw new DomainException($"Pizza '{pizza.Name}' is not currently on the menu.");
+
+    Lines.Add(new OrderLine(Id, pizza.Name, pizza.Price, quantity));
   }
 
   private void TransitionTo(OrderStatus target)

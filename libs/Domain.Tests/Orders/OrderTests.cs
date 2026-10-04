@@ -9,6 +9,7 @@ public class OrderTests
   private static readonly DateOnly Today = new(2026, 10, 4);
   private static readonly DateTimeOffset Now = new(2026, 10, 4, 12, 0, 0, TimeSpan.Zero);
   private static readonly DateTimeOffset Later = Now.AddMinutes(10);
+  private static readonly Guid WorkstationId = Guid.NewGuid();
 
   private static Pizza CreatePizza(string name = "Margherita", decimal price = 6.50m) =>
     new(name, null, price);
@@ -31,6 +32,7 @@ public class OrderTests
     Assert.Equal(Now, order.CreatedAt);
     Assert.Null(order.StartedAt);
     Assert.Null(order.ReadyAt);
+    Assert.Null(order.FkWorkstation);
     Assert.Single(order.Lines);
   }
 
@@ -182,11 +184,35 @@ public class OrderTests
   {
     var order = CreateOrder();
 
-    order.StartPreparation(Later);
+    order.StartPreparation(WorkstationId, Later);
 
     Assert.Equal(OrderStatus.InPreparation, order.Status);
     Assert.Equal(Later, order.StartedAt);
     Assert.Null(order.ReadyAt);
+  }
+
+  [Fact]
+  public void StartPreparation_AssignsWorkstation()
+  {
+    var order = CreateOrder();
+
+    order.StartPreparation(WorkstationId, Later);
+
+    Assert.Equal(WorkstationId, order.FkWorkstation);
+  }
+
+  [Fact]
+  public void StartPreparation_WithEmptyWorkstation_ThrowsAndLeavesOrderUnchanged()
+  {
+    var order = CreateOrder();
+    var version = order.Version;
+
+    Assert.Throws<DomainException>(() => order.StartPreparation(Guid.Empty, Later));
+
+    Assert.Equal(OrderStatus.Queued, order.Status);
+    Assert.Null(order.FkWorkstation);
+    Assert.Null(order.StartedAt);
+    Assert.Equal(version, order.Version);
   }
 
   [Fact]
@@ -195,7 +221,7 @@ public class OrderTests
     var order = CreateOrder();
     var version = order.Version;
 
-    order.StartPreparation(Later);
+    order.StartPreparation(WorkstationId, Later);
 
     Assert.NotEqual(version, order.Version);
   }
@@ -204,19 +230,19 @@ public class OrderTests
   public void StartPreparation_WhenAlreadyInPreparation_Throws()
   {
     var order = CreateOrder();
-    order.StartPreparation(Later);
+    order.StartPreparation(WorkstationId, Later);
 
-    Assert.Throws<DomainException>(() => order.StartPreparation(Later));
+    Assert.Throws<DomainException>(() => order.StartPreparation(WorkstationId, Later));
   }
 
   [Fact]
   public void StartPreparation_WhenReady_Throws()
   {
     var order = CreateOrder();
-    order.StartPreparation(Later);
+    order.StartPreparation(WorkstationId, Later);
     order.MarkReady(Later);
 
-    Assert.Throws<DomainException>(() => order.StartPreparation(Later));
+    Assert.Throws<DomainException>(() => order.StartPreparation(WorkstationId, Later));
   }
 
   #endregion
@@ -227,7 +253,7 @@ public class OrderTests
   public void MarkReady_WhenInPreparation_MovesToReady()
   {
     var order = CreateOrder();
-    order.StartPreparation(Now);
+    order.StartPreparation(WorkstationId, Now);
 
     order.MarkReady(Later);
 
@@ -240,7 +266,7 @@ public class OrderTests
   public void MarkReady_ChangesVersion()
   {
     var order = CreateOrder();
-    order.StartPreparation(Now);
+    order.StartPreparation(WorkstationId, Now);
     var version = order.Version;
 
     order.MarkReady(Later);
@@ -265,7 +291,7 @@ public class OrderTests
   public void MarkReady_WhenAlreadyReady_Throws()
   {
     var order = CreateOrder();
-    order.StartPreparation(Now);
+    order.StartPreparation(WorkstationId, Now);
     order.MarkReady(Later);
 
     Assert.Throws<DomainException>(() => order.MarkReady(Later.AddMinutes(1)));
