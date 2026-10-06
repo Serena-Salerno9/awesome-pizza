@@ -7,6 +7,8 @@ public sealed record BatchEstimate(
   DateTimeOffset EstimatedBakeStartAt,
   DateTimeOffset EstimatedReadyAt);
 
+public sealed record BatchToEstimate(int PizzaCount, DateTimeOffset EarliestStart);
+
 public static class BatchTimeEstimator
 {
   public static int MaxBatchSize(Baker baker, Oven oven) =>
@@ -15,7 +17,7 @@ public static class BatchTimeEstimator
   public static IReadOnlyList<BatchEstimate> Estimate(
     Baker baker,
     Oven oven,
-    IEnumerable<(int PizzaCount, DateTimeOffset EarliestStart)> batches,
+    IEnumerable<BatchToEstimate> batches,
     DateTimeOffset now)
   {
     ArgumentNullException.ThrowIfNull(baker);

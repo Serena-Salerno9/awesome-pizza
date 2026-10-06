@@ -19,7 +19,7 @@ public class BatchTimeEstimatorTests
     Oven oven,
     int now,
     params (int PizzaCount, int EarliestStart)[] batches) =>
-    BatchTimeEstimator.Estimate(baker, oven, batches.Select(b => (b.PizzaCount, At(b.EarliestStart))), At(now));
+    BatchTimeEstimator.Estimate(baker, oven, batches.Select(b => new BatchToEstimate(b.PizzaCount, At(b.EarliestStart))), At(now));
 
   #region Validazione
 
@@ -35,6 +35,18 @@ public class BatchTimeEstimatorTests
   public void Estimate_WithNullBatches_Throws()
   {
     Assert.Throws<ArgumentNullException>(() => BatchTimeEstimator.Estimate(CreateBaker(), CreateOven(), null!, Noon));
+  }
+
+  [Fact]
+  public void Estimate_WithNullBaker_Throws()
+  {
+    Assert.Throws<ArgumentNullException>(() => BatchTimeEstimator.Estimate(null!, CreateOven(), [], Noon));
+  }
+
+  [Fact]
+  public void Estimate_WithNullOven_Throws()
+  {
+    Assert.Throws<ArgumentNullException>(() => BatchTimeEstimator.Estimate(CreateBaker(), null!, [], Noon));
   }
 
   [Theory]
