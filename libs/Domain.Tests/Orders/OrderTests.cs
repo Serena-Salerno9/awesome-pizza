@@ -268,90 +268,6 @@ public class OrderTests
 
   #endregion
 
-  #region Presa in carico
-
-  [Fact]
-  public void TakeCharge_WhenInPreparation_SetsTakenAt()
-  {
-    var order = CreateOrder();
-    order.StartPreparation(WorkstationId, Now);
-
-    order.TakeCharge(Later);
-
-    Assert.Equal(OrderStatus.InPreparation, order.Status);
-    Assert.Equal(Later, order.TakenAt);
-  }
-
-  [Fact]
-  public void TakeCharge_ChangesVersion()
-  {
-    var order = CreateOrder();
-    order.StartPreparation(WorkstationId, Now);
-    var version = order.Version;
-
-    order.TakeCharge(Later);
-
-    Assert.NotEqual(version, order.Version);
-  }
-
-  [Fact]
-  public void TakeCharge_AtStartedAt_Accepts()
-  {
-    var order = CreateOrder();
-    order.StartPreparation(WorkstationId, Now);
-
-    order.TakeCharge(Now);
-
-    Assert.Equal(Now, order.TakenAt);
-  }
-
-  [Fact]
-  public void TakeCharge_BeforeStartedAt_ThrowsAndLeavesOrderUnchanged()
-  {
-    var order = CreateOrder();
-    order.StartPreparation(WorkstationId, Later);
-    var version = order.Version;
-
-    Assert.Throws<DomainException>(() => order.TakeCharge(Now));
-
-    Assert.Null(order.TakenAt);
-    Assert.Equal(version, order.Version);
-  }
-
-  [Fact]
-  public void TakeCharge_WhenQueued_ThrowsAndLeavesOrderUnchanged()
-  {
-    var order = CreateOrder();
-    var version = order.Version;
-
-    Assert.Throws<DomainException>(() => order.TakeCharge(Later));
-
-    Assert.Null(order.TakenAt);
-    Assert.Equal(version, order.Version);
-  }
-
-  [Fact]
-  public void TakeCharge_WhenAlreadyTaken_Throws()
-  {
-    var order = CreateOrder();
-    order.StartPreparation(WorkstationId, Now);
-    order.TakeCharge(Later);
-
-    Assert.Throws<DomainException>(() => order.TakeCharge(Later.AddMinutes(1)));
-  }
-
-  [Fact]
-  public void TakeCharge_WhenReady_Throws()
-  {
-    var order = CreateOrder();
-    order.StartPreparation(WorkstationId, Now);
-    order.MarkReady(Later);
-
-    Assert.Throws<DomainException>(() => order.TakeCharge(Later));
-  }
-
-  #endregion
-
   #region Pronto
 
   [Fact]
@@ -414,28 +330,6 @@ public class OrderTests
     Assert.Equal(OrderStatus.InPreparation, order.Status);
     Assert.Null(order.ReadyAt);
     Assert.Equal(version, order.Version);
-  }
-
-  [Fact]
-  public void MarkReady_BeforeTakenAt_Throws()
-  {
-    var order = CreateOrder();
-    order.StartPreparation(WorkstationId, Now);
-    order.TakeCharge(Later);
-
-    Assert.Throws<DomainException>(() => order.MarkReady(Now.AddMinutes(5)));
-  }
-
-  [Fact]
-  public void MarkReady_AtTakenAt_Accepts()
-  {
-    var order = CreateOrder();
-    order.StartPreparation(WorkstationId, Now);
-    order.TakeCharge(Later);
-
-    order.MarkReady(Later);
-
-    Assert.Equal(Later, order.ReadyAt);
   }
 
   #endregion

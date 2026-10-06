@@ -27,7 +27,6 @@ public class Order
   public OrderStatus Status { get; private set; }
   public DateTimeOffset CreatedAt { get; private set; }
   public DateTimeOffset? StartedAt { get; private set; }
-  public DateTimeOffset? TakenAt { get; private set; }
   public DateTimeOffset? ReadyAt { get; private set; }
 
   public Guid? FkWorkstation { get; private set; }
@@ -89,24 +88,9 @@ public class Order
     StartedAt = startedAt;
   }
 
-  public void TakeCharge(DateTimeOffset now)
-  {
-    if (Status != OrderStatus.InPreparation)
-      throw new DomainException("Only an order in preparation can be taken in charge.");
-
-    if (TakenAt is not null)
-      throw new DomainException("Order has already been taken in charge.");
-
-    if (now < StartedAt)
-      throw new DomainException("An order cannot be taken in charge before its planned start.");
-
-    TakenAt = now;
-    Version = Guid.NewGuid();
-  }
-
   public void MarkReady(DateTimeOffset now)
   {
-    if (now < (TakenAt ?? StartedAt))
+    if (now < StartedAt)
       throw new DomainException("An order cannot be ready before it started.");
 
     TransitionTo(OrderStatus.Ready);

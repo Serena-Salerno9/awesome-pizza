@@ -139,9 +139,6 @@ namespace Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<DateTimeOffset?>("TakenAt")
-                        .HasColumnType("datetimeoffset");
-
                     b.Property<Guid>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("uniqueidentifier");
