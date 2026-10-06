@@ -14,4 +14,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
   public DbSet<Workstation> Workstations => Set<Workstation>();
   public DbSet<Order> Orders => Set<Order>();
   public DbSet<OrderLine> OrderLines => Set<OrderLine>();
+  public DbSet<Batch> Batches => Set<Batch>();
+  public DbSet<BatchLine> BatchLines => Set<BatchLine>();
 }
