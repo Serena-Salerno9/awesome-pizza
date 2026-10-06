@@ -27,6 +27,7 @@ public class Order
   public OrderStatus Status { get; private set; }
   public DateTimeOffset CreatedAt { get; private set; }
   public DateTimeOffset? StartedAt { get; private set; }
+  public DateTimeOffset? TakenAt { get; private set; }
   public DateTimeOffset? ReadyAt { get; private set; }
 
   public Guid? FkWorkstation { get; private set; }
@@ -75,18 +76,39 @@ public class Order
       throw new DomainException($"An order cannot contain more than {MaxPizzasPerOrder} pizzas.");
   }
 
-  public void StartPreparation(Guid workstationId, DateTimeOffset now)
+  public void StartPreparation(Guid workstationId, DateTimeOffset startedAt)
   {
     if (workstationId == Guid.Empty)
       throw new DomainException("Workstation is required.");
 
+    if (startedAt < CreatedAt)
+      throw new DomainException("An order cannot start before it was created.");
+
     TransitionTo(OrderStatus.InPreparation);
     FkWorkstation = workstationId;
-    StartedAt = now;
+    StartedAt = startedAt;
+  }
+
+  public void TakeCharge(DateTimeOffset now)
+  {
+    if (Status != OrderStatus.InPreparation)
+      throw new DomainException("Only an order in preparation can be taken in charge.");
+
+    if (TakenAt is not null)
+      throw new DomainException("Order has already been taken in charge.");
+
+    if (now < StartedAt)
+      throw new DomainException("An order cannot be taken in charge before its planned start.");
+
+    TakenAt = now;
+    Version = Guid.NewGuid();
   }
 
   public void MarkReady(DateTimeOffset now)
   {
+    if (now < (TakenAt ?? StartedAt))
+      throw new DomainException("An order cannot be ready before it started.");
+
     TransitionTo(OrderStatus.Ready);
     ReadyAt = now;
   }

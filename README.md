@@ -36,3 +36,5 @@ Test: `npm test`
 - **Stati d'ordine come enum** — gli stati guidano transizioni e scheduler, quindi aggiungerne uno richiede comunque codice: una tabella darebbe flessibilità solo apparente.
 - **Snapshot della pizza in `OrderLine`** — nome e prezzo unitario restano quelli concordati al momento dell'ordine, anche se il catalogo cambia.
 - **Ora stimata non persistita** — è derivata dallo stato della coda e ricalcolata a ogni lettura, così resta coerente senza aggiornamenti a cascata.
+- **Presa in carico facoltativa** — la stima si basa sul piano dello scheduler, oppure sull'inizio reale se il pizzaiolo registra la presa in carico. Scartato un margine di attesa: avrebbe rilevato prima i ritardi, ma un click dimenticato avrebbe bloccato nuovi ordini.
+- **Ordine pronto = evaso** — l'evasione coincide con la disponibilità al ritiro, coerentemente con il focus della traccia sulla cucina, sulla coda e sui tempi stimati.
