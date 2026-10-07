@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Api.Errors;
+using Api.Workers;
 using Application;
 using Application.Planning;
 using Infrastructure.Persistence;
@@ -21,6 +22,8 @@ builder.Services.AddOpenApi("v1", options =>
 
 builder.Services.AddControllers()
   .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+builder.Services.ConfigureHttpJsonOptions(options =>
+  options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<DomainExceptionHandler>();
 
@@ -28,6 +31,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 var planning = builder.Configuration.GetSection(PlanningOptions.SectionName).Get<PlanningOptions>() ?? new PlanningOptions();
 builder.Services.AddApplication(planning);
+
+builder.Services.AddOptions<BatchAssignmentOptions>()
+  .BindConfiguration(BatchAssignmentOptions.SectionName)
+  .ValidateDataAnnotations()
+  .ValidateOnStart();
+builder.Services.AddHostedService<BatchAssignmentWorker>();
 
 var app = builder.Build();
 

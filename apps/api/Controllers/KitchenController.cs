@@ -12,12 +12,6 @@ public class KitchenController(IKitchenService kitchen) : ControllerBase
   public async Task<KitchenViewResponse> Get(CancellationToken ct) =>
     KitchenViewResponse.From(await kitchen.GetPlanAsync(ct));
 
-  [HttpPost("batches")]
-  [ProducesResponseType<KitchenViewResponse>(StatusCodes.Status200OK)]
-  [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-  public async Task<KitchenViewResponse> StartNextBatch(CancellationToken ct) =>
-    KitchenViewResponse.From(await kitchen.StartNextBatchAsync(ct));
-
   [HttpPost("batches/{id:guid}/take-charge")]
   [ProducesResponseType(StatusCodes.Status204NoContent)]
   [ProducesResponseType(StatusCodes.Status404NotFound)]
