@@ -1,16 +1,24 @@
-import { render } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { apiClient } from "@awesome-pizza/api-client";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+import { renderWithProviders } from "../test-utils";
+import App from "./app";
 
-import App from './app';
+vi.mock("@awesome-pizza/api-client", () => ({
+  apiClient: { GET: vi.fn(), POST: vi.fn() },
+}));
 
-describe('App', () => {
-  it('should render successfully', () => {
-    const { baseElement } = render(<BrowserRouter><App /></BrowserRouter>);
+describe("App", () => {
+  beforeEach(() => {
+    (apiClient.GET as unknown as Mock).mockResolvedValue({ data: [] });
+  });
+
+  it("should render successfully", () => {
+    const { baseElement } = renderWithProviders(<App />);
     expect(baseElement).toBeTruthy();
   });
 
-  it('should render the home title', () => {
-    const { getByRole } = render(<BrowserRouter><App /></BrowserRouter>);
-    expect(getByRole('heading', { name: 'Awesome Pizza' })).toBeTruthy();
+  it("should render the home title", () => {
+    const { getByRole } = renderWithProviders(<App />);
+    expect(getByRole("heading", { name: "Awesome Pizza" })).toBeTruthy();
   });
 });

@@ -1,9 +1,12 @@
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes } from "react-router-dom";
+import { CustomerPage } from "./customer/CustomerPage";
+import { KitchenPage } from "./kitchen/KitchenPage";
 
 export function App() {
   return (
     <Routes>
-      <Route path="/" element={<h1>Awesome Pizza</h1>} />
+      <Route path="/" element={<CustomerPage />} />
+      <Route path="/kitchen" element={<KitchenPage />} />
     </Routes>
   );
 }
