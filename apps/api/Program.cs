@@ -1,3 +1,5 @@
+using Application;
+using Application.Planning;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +19,8 @@ builder.Services.AddOpenApi("v1", options =>
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+var planning = builder.Configuration.GetSection(PlanningOptions.SectionName).Get<PlanningOptions>() ?? new PlanningOptions();
+builder.Services.AddApplication(planning);
 
 var app = builder.Build();
 
