@@ -588,7 +588,11 @@
         }
       },
       "OrderStatus": {
-        "type": "integer"
+        "enum": [
+          "Queued",
+          "InPreparation",
+          "Ready"
+        ]
       },
       "ProblemDetails": {
         "type": "object",
