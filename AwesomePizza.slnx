@@ -3,6 +3,7 @@
     <Project Path="apps/api/api.csproj" />
   </Folder>
   <Folder Name="/libs/">
+    <Project Path="libs/Application/Application.csproj" />
     <Project Path="libs/Domain.Tests/Domain.Tests.csproj" />
     <Project Path="libs/Domain/Domain.csproj" />
     <Project Path="libs/Infrastructure/Infrastructure.csproj" />
