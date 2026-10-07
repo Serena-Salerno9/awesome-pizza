@@ -77,6 +77,8 @@ Con numeri realistici un solo pizzaiolo raramente riempie un forno da 6–9 post
 - Senza presa in carico vale il piano, e il ritardo del pizzaiolo si vede solo quando l'ora stimata scade.
 - Con poco lavoro le infornate sono piccole: un ordine non aspetta altri ordini per riempire il forno.
 - Con il backfill, l'ora stimata di un ordine in coda può peggiorare fino a T per far passare ordini più piccoli; con FIFO non succede.
+- Due richieste simultanee di assegnazione potrebbero creare due volte la stessa infornata: con un solo pizzaiolo e un'unica fonte di assegnazione il caso non si presenta, e il controllo di concorrenza è rimandato a quando le assegnazioni verranno fatte dal servizio in background.
+- C'è una sola postazione, quindi un solo pizzaiolo e un solo forno: il piano e le assegnazioni la leggono come unica postazione esistente.
 
 ## Evoluzioni
 

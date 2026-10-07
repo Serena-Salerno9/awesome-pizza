@@ -1,4 +1,6 @@
 using System;
+using Application.Kitchen;
+using Application.Menu;
 using Application.Orders;
 using Application.Planning;
 using Domain.Kitchen.Planning;
@@ -17,6 +19,8 @@ public static class DependencyInjection
     services.AddSingleton<KitchenPlanBuilder>();
     services.AddScoped<KitchenPlanner>();
     services.AddScoped<IOrderService, OrderService>();
+    services.AddScoped<IKitchenService, KitchenService>();
+    services.AddScoped<IMenuService, MenuService>();
 
     return services;
   }

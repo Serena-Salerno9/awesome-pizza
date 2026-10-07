@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Api.Errors;
 using Application;
 using Application.Planning;
@@ -18,7 +19,8 @@ builder.Services.AddOpenApi("v1", options =>
   });
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+  .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<DomainExceptionHandler>();
 
