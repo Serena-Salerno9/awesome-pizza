@@ -26,7 +26,7 @@ public class KitchenPlanBuilderTests
       At(earliestStartMinutes),
       items.Select(i => new BatchLineSnapshot(i.Line.Id, i.Order.Id, i.Line.PizzaName, i.Quantity)).ToList());
 
-  private static KitchenSnapshot CreateSnapshot(OrderSnapshot[] orders, params BatchSnapshot[] openBatches) =>
+  private static QueueSnapshot CreateSnapshot(OrderSnapshot[] orders, params BatchSnapshot[] openBatches) =>
     new(TestBaker, SmallOven, At(0), openBatches, orders);
 
   private static KitchenPlanBuilder CreateBuilder(IBatchPlanner? planner = null) =>

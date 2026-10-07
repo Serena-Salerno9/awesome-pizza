@@ -18,7 +18,7 @@ public static class DependencyInjection
     services.AddSingleton(CreatePlanner(planning));
     services.AddSingleton(TimeProvider.System);
     services.AddSingleton<KitchenPlanBuilder>();
-    services.AddScoped<KitchenPlanner>();
+    services.AddScoped<QueuePlanner>();
     services.AddScoped<IOrderService, OrderService>();
     services.AddScoped<IKitchenService, KitchenService>();
     services.AddScoped<IKitchenSettingsService, KitchenSettingsService>();

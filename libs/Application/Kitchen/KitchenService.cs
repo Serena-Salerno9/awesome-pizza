@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Kitchen;
 
-public sealed class KitchenService(AppDbContext db, KitchenPlanner planner, TimeProvider time) : IKitchenService
+public sealed class KitchenService(AppDbContext db, QueuePlanner planner, TimeProvider time) : IKitchenService
 {
   public Task<KitchenPlan> GetPlanAsync(CancellationToken ct = default) =>
     planner.GetPlanAsync(ct);

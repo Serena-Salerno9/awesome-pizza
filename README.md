@@ -26,15 +26,15 @@ Test: `npm test`. Serve il container attivo, perché i test dei servizi usano il
 
 ## Requisiti e codice
 
-| Requisito | Dove |
-|---|---|
-| Ordini senza registrazione | `POST /api/v1/orders`, `OrderService` |
-| Limiti di pizzaiolo e forno | `libs/Domain/Kitchen` |
-| Ordini e pizze per il pizzaiolo | `GET /api/v1/kitchen`, `KitchenPlanner` |
-| Codice, stato e ora stimata | `GET /api/v1/orders/{code}`, `BatchTimeEstimator` |
-| Ordini in preparazione e successivi | `GET /api/v1/orders` |
-| Documentazione automatica | Swagger UI, `apps/api/Program.cs` |
-| Test di unità | `libs/Domain.Tests`, `libs/Application.Tests` |
+| Requisito                           | Dove                                              |
+| ----------------------------------- | ------------------------------------------------- |
+| Ordini senza registrazione          | `POST /api/v1/orders`, `OrderService`             |
+| Limiti di pizzaiolo e forno         | `libs/Domain/Kitchen`                             |
+| Ordini e pizze per il pizzaiolo     | `GET /api/v1/kitchen`, `QueuePlanner`             |
+| Codice, stato e ora stimata         | `GET /api/v1/orders/{code}`, `BatchTimeEstimator` |
+| Ordini in preparazione e successivi | `GET /api/v1/orders`                              |
+| Documentazione automatica           | Swagger UI, `apps/api/Program.cs`                 |
+| Test di unità                       | `libs/Domain.Tests`, `libs/Application.Tests`     |
 
 ## Esempio d'uso
 

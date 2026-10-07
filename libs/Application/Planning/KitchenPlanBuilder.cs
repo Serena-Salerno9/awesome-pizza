@@ -14,7 +14,7 @@ public sealed class KitchenPlanBuilder
     _planner = planner;
   }
 
-  public KitchenPlan Build(KitchenSnapshot snapshot)
+  public KitchenPlan Build(QueueSnapshot snapshot)
   {
     ArgumentNullException.ThrowIfNull(snapshot);
 
@@ -44,15 +44,15 @@ public sealed class KitchenPlanBuilder
     return new KitchenPlan(batches, BuildOrderEstimates(snapshot, batches));
   }
 
-  private static List<BatchSnapshot> OrderOpenBatches(KitchenSnapshot snapshot) =>
+  private static List<BatchSnapshot> OrderOpenBatches(QueueSnapshot snapshot) =>
     [.. snapshot.OpenBatches.OrderBy(b => b.EarliestStart)];
 
-  private static IOrderedEnumerable<OrderSnapshot> InArrivalOrder(KitchenSnapshot snapshot) =>
+  private static IOrderedEnumerable<OrderSnapshot> InArrivalOrder(QueueSnapshot snapshot) =>
     snapshot.ActiveOrders
       .OrderBy(o => o.CreatedAt)
       .ThenBy(o => o.Code, StringComparer.Ordinal);
 
-  private static List<PendingOrder> BuildQueue(KitchenSnapshot snapshot) =>
+  private static List<PendingOrder> BuildQueue(QueueSnapshot snapshot) =>
     [.. InArrivalOrder(snapshot)
       .Select(o => new PendingOrder(
         o.Id,
@@ -80,7 +80,7 @@ public sealed class KitchenPlanBuilder
       estimate.EstimatedBakeStartAt,
       estimate.EstimatedReadyAt);
 
-  private static List<OrderEstimate> BuildOrderEstimates(KitchenSnapshot snapshot, List<PlanBatch> batches)
+  private static List<OrderEstimate> BuildOrderEstimates(QueueSnapshot snapshot, List<PlanBatch> batches)
   {
     var readyAtByOrder = batches
       .SelectMany(b => b.Lines.Select(l => (l.OrderId, b.EstimatedReadyAt)))

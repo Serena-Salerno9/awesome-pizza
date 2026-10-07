@@ -17,7 +17,7 @@ public sealed record BatchSnapshot(Guid Id, DateTimeOffset EarliestStart, IReadO
   public int PizzaCount => Lines.Sum(l => l.Quantity);
 }
 
-public sealed record KitchenSnapshot(
+public sealed record QueueSnapshot(
   Baker Baker,
   Oven Oven,
   DateTimeOffset Now,
