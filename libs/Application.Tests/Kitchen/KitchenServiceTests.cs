@@ -109,6 +109,40 @@ public class KitchenServiceTests(DatabaseFixture fixture) : DatabaseTestBase(fix
   }
 
   [Fact]
+  public async Task AssignDueBatches_WhenAnAssignedBatchIsOverdue_AssignsNothingUntilItIsReady()
+  {
+    await OrderAsync("Margherita", 4);
+    await OrderAsync("Marinara", 1);
+    var kitchen = CreateKitchenService();
+    var first = await AssignBatchAsync(kitchen);
+    Advance(20);
+
+    Assert.Equal(0, await kitchen.AssignDueBatchesAsync());
+
+    await using (var db = _fixture.CreateContext())
+      Assert.Equal(1, await db.Batches.CountAsync());
+
+    await kitchen.MarkReadyAsync(first.Batches[0].BatchId!.Value);
+
+    Assert.Equal(1, await kitchen.AssignDueBatchesAsync());
+  }
+
+  [Fact]
+  public async Task GetPlan_WhileAnAssignedBatchIsOverdue_PushesQueuedEstimatesForwardAsTimePasses()
+  {
+    await OrderAsync("Margherita", 4);
+    await OrderAsync("Marinara", 1);
+    await AssignBatchAsync(CreateKitchenService());
+    var orders = CreateOrderService();
+
+    Advance(20);
+    Assert.Equal(At(27), (await orders.GetByCodeAsync("002"))!.EstimatedReadyAt);
+
+    Advance(10);
+    Assert.Equal(At(37), (await orders.GetByCodeAsync("002"))!.EstimatedReadyAt);
+  }
+
+  [Fact]
   public async Task AssignDueBatches_AfterPreviousBatchIsReady_AssignsNextOne()
   {
     await OrderAsync("Margherita", 4);
