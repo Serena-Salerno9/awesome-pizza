@@ -94,4 +94,47 @@ public class BakerTests
   }
 
   #endregion
+
+  #region Modifica
+
+  [Fact]
+  public void Update_WithValidData_ChangesSkillAndKeepsIdentity()
+  {
+    var baker = new Baker("Mario", 3, TimeSpan.FromMinutes(2));
+    var id = baker.Id;
+
+    baker.Update(12, TimeSpan.FromMinutes(1));
+
+    Assert.Equal(12, baker.MaxConcurrentPizzas);
+    Assert.Equal(TimeSpan.FromMinutes(1), baker.PreparationTimePerPizza);
+    Assert.Equal(id, baker.Id);
+    Assert.Equal("Mario", baker.Name);
+  }
+
+  [Theory]
+  [InlineData(0)]
+  [InlineData(-1)]
+  public void Update_WithMaxConcurrentPizzasBelowOne_ThrowsAndKeepsValues(int maxConcurrentPizzas)
+  {
+    var baker = new Baker("Mario", 3, TimeSpan.FromMinutes(2));
+
+    Assert.Throws<DomainException>(() => baker.Update(maxConcurrentPizzas, TimeSpan.FromMinutes(1)));
+
+    Assert.Equal(3, baker.MaxConcurrentPizzas);
+    Assert.Equal(TimeSpan.FromMinutes(2), baker.PreparationTimePerPizza);
+  }
+
+  [Theory]
+  [MemberData(nameof(ZeroOrNegativeDurations))]
+  public void Update_WithZeroOrNegativePreparationTime_ThrowsAndKeepsValues(TimeSpan preparationTime)
+  {
+    var baker = new Baker("Mario", 3, TimeSpan.FromMinutes(2));
+
+    Assert.Throws<DomainException>(() => baker.Update(12, preparationTime));
+
+    Assert.Equal(3, baker.MaxConcurrentPizzas);
+    Assert.Equal(TimeSpan.FromMinutes(2), baker.PreparationTimePerPizza);
+  }
+
+  #endregion
 }
