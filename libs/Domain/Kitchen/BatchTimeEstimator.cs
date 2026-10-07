@@ -33,12 +33,15 @@ public static class BatchTimeEstimator
     var bakerFreeAt = kitchenFreeAt;
     var openPizzaFreeAt = Enumerable.Repeat(kitchenFreeAt, baker.MaxConcurrentPizzas).ToArray();
     var ovenPostFreeAt = Enumerable.Repeat(kitchenFreeAt, oven.Capacity).ToArray();
+    var previousReadyAt = kitchenFreeAt;
     var estimates = new List<BatchEstimate>();
 
-    foreach (var (pizzaCount, earliestStart) in batchList)
+    foreach (var (pizzaCount, batchEarliestStart) in batchList)
     {
       ArgumentOutOfRangeException.ThrowIfLessThan(pizzaCount, 1);
       ArgumentOutOfRangeException.ThrowIfGreaterThan(pizzaCount, maxBatchSize);
+
+      var earliestStart = Max(batchEarliestStart, previousReadyAt);
 
       DateTimeOffset? startAt = null;
       var batchPizzaIndexes = new List<int>();
@@ -67,6 +70,7 @@ public static class BatchTimeEstimator
       foreach (var postIndex in batchPostIndexes)
         ovenPostFreeAt[postIndex] = readyAt;
 
+      previousReadyAt = readyAt;
       estimates.Add(new BatchEstimate(startAt!.Value, bakeStart, readyAt));
     }
 

@@ -93,18 +93,18 @@ public class BackfillBatchPlannerTests
 
   #region Forno occupato
 
-  // Con un'infornata già assegnata il forno è occupato fino alle 14: la prima infornata pianificata
-  // aspetta comunque, quindi aggiungerle pizze non costa nulla a nessuno, nemmeno con T = 0
+  // Le infornate vanno in sequenza: anche con un'infornata già assegnata, aggiungere pizze alla prima
+  // pianificata ne allunga la preparazione e fa slittare gli altri, quindi con T = 0 non si anticipa nulla
   [Fact]
-  public void Plan_WhenOvenIsBusy_PullsSmallOrderForwardEvenWithZeroTolerance()
+  public void Plan_WhenAnAssignedBatchIsOpen_DoesNotPullSmallOrderWithZeroTolerance()
   {
     var small = CreateOrder(2);
     var assigned = new BatchToEstimate(6, At(0));
 
     var result = Plan(0, CreateContext(assigned), CreateOrder(3), CreateOrder(4), small);
 
-    Assert.Equal([5, 4], Sizes(result));
-    Assert.Contains(small.Lines[0].OrderLineId, result[0].Lines.Select(l => l.OrderLineId));
+    Assert.Equal([3, 6], Sizes(result));
+    Assert.DoesNotContain(small.Lines[0].OrderLineId, result[0].Lines.Select(l => l.OrderLineId));
   }
 
   #endregion

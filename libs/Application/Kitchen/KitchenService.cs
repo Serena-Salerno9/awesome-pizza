@@ -28,8 +28,8 @@ public sealed class KitchenService(AppDbContext db, KitchenPlanner planner, Time
     var next = plan.Batches.FirstOrDefault(b => b.BatchId is null);
 
     var now = time.GetUtcNow();
-    var hasOverdueBatch = plan.Batches.Any(b => b.BatchId is not null && b.EstimatedReadyAt <= now);
-    if (next is null || hasOverdueBatch || next.EstimatedStartAt > now)
+    var hasOpenBatch = plan.Batches.Any(b => b.BatchId is not null);
+    if (next is null || hasOpenBatch || next.EstimatedStartAt > now)
       return false;
 
     var workstation = await db.Workstations.SingleAsync(ct);
