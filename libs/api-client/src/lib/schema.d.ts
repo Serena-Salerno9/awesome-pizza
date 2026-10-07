@@ -155,6 +155,81 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/kitchen/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["KitchenSettingsResponse"];
+                        "application/json": components["schemas"]["KitchenSettingsResponse"];
+                        "text/json": components["schemas"]["KitchenSettingsResponse"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["KitchenSettingsRequest"];
+                    "text/json": components["schemas"]["KitchenSettingsRequest"];
+                    "application/*+json": components["schemas"]["KitchenSettingsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["KitchenSettingsResponse"];
+                        "application/json": components["schemas"]["KitchenSettingsResponse"];
+                        "text/json": components["schemas"]["KitchenSettingsResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/menu": {
         parameters: {
             query?: never;
@@ -317,6 +392,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/orders/limits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["OrderLimitsResponse"];
+                        "application/json": components["schemas"]["OrderLimitsResponse"];
+                        "text/json": components["schemas"]["OrderLimitsResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -341,6 +453,27 @@ export interface components {
             estimatedReadyAt: string;
             lines: components["schemas"]["KitchenBatchLineResponse"][];
         };
+        KitchenSettingsRequest: {
+            /** Format: int32 */
+            maxConcurrentPizzas: number | string;
+            /** Format: double */
+            preparationMinutes: number | string;
+            /** Format: int32 */
+            ovenCapacity: number | string;
+            /** Format: double */
+            bakingMinutes: number | string;
+        };
+        KitchenSettingsResponse: {
+            /** Format: int32 */
+            maxConcurrentPizzas: number | string;
+            /** Format: double */
+            preparationMinutes: number | string;
+            /** Format: int32 */
+            ovenCapacity: number | string;
+            /** Format: double */
+            bakingMinutes: number | string;
+            system: components["schemas"]["SystemSettingsResponse"];
+        };
         KitchenViewResponse: {
             batches: components["schemas"]["KitchenBatchResponse"][];
         };
@@ -358,6 +491,10 @@ export interface components {
             /** Format: int32 */
             quantity: number | string;
         };
+        OrderLimitsResponse: {
+            /** Format: int32 */
+            maxPizzasPerOrder: number | string;
+        };
         OrderResponse: {
             code: string;
             status: components["schemas"]["OrderStatus"];
@@ -368,6 +505,8 @@ export interface components {
         };
         /** @enum {unknown} */
         OrderStatus: "Queued" | "InPreparation" | "Ready";
+        /** @enum {unknown} */
+        PlanningPolicy: "Fifo" | "Backfill";
         ProblemDetails: {
             type?: null | string;
             title?: null | string;
@@ -375,6 +514,13 @@ export interface components {
             status?: null | number | string;
             detail?: null | string;
             instance?: null | string;
+        };
+        SystemSettingsResponse: {
+            planningPolicy: components["schemas"]["PlanningPolicy"];
+            /** Format: int32 */
+            backfillToleranceMinutes: number | string;
+            /** Format: int32 */
+            assignmentIntervalSeconds: number | string;
         };
     };
     responses: never;
