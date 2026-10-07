@@ -17,14 +17,27 @@ public class Oven
 
   public Oven(int capacity, TimeSpan bakingTime)
   {
+    EnsureValidSpecs(capacity, bakingTime);
+
+    Id = Guid.NewGuid();
+    Capacity = capacity;
+    BakingTime = bakingTime;
+  }
+
+  public void Update(int capacity, TimeSpan bakingTime)
+  {
+    EnsureValidSpecs(capacity, bakingTime);
+
+    Capacity = capacity;
+    BakingTime = bakingTime;
+  }
+
+  private static void EnsureValidSpecs(int capacity, TimeSpan bakingTime)
+  {
     if (capacity < 1)
       throw new DomainException("Oven capacity must be at least 1.");
 
     if (bakingTime <= TimeSpan.Zero)
       throw new DomainException("Baking time must be greater than zero.");
-
-    Id = Guid.NewGuid();
-    Capacity = capacity;
-    BakingTime = bakingTime;
   }
 }

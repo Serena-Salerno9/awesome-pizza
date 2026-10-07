@@ -52,4 +52,46 @@ public class OvenTests
   }
 
   #endregion
+
+  #region Modifica
+
+  [Fact]
+  public void Update_WithValidData_ChangesSpecsAndKeepsIdentity()
+  {
+    var oven = new Oven(4, TimeSpan.FromMinutes(8));
+    var id = oven.Id;
+
+    oven.Update(8, TimeSpan.FromMinutes(4));
+
+    Assert.Equal(8, oven.Capacity);
+    Assert.Equal(TimeSpan.FromMinutes(4), oven.BakingTime);
+    Assert.Equal(id, oven.Id);
+  }
+
+  [Theory]
+  [InlineData(0)]
+  [InlineData(-1)]
+  public void Update_WithCapacityBelowOne_ThrowsAndKeepsValues(int capacity)
+  {
+    var oven = new Oven(4, TimeSpan.FromMinutes(8));
+
+    Assert.Throws<DomainException>(() => oven.Update(capacity, TimeSpan.FromMinutes(4)));
+
+    Assert.Equal(4, oven.Capacity);
+    Assert.Equal(TimeSpan.FromMinutes(8), oven.BakingTime);
+  }
+
+  [Theory]
+  [MemberData(nameof(ZeroOrNegativeDurations))]
+  public void Update_WithZeroOrNegativeBakingTime_ThrowsAndKeepsValues(TimeSpan bakingTime)
+  {
+    var oven = new Oven(4, TimeSpan.FromMinutes(8));
+
+    Assert.Throws<DomainException>(() => oven.Update(8, bakingTime));
+
+    Assert.Equal(4, oven.Capacity);
+    Assert.Equal(TimeSpan.FromMinutes(8), oven.BakingTime);
+  }
+
+  #endregion
 }

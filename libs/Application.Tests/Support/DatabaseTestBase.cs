@@ -32,6 +32,9 @@ public abstract class DatabaseTestBase(DatabaseFixture fixture) : IAsyncLifetime
   protected KitchenService CreateKitchenService(AppDbContext? db = null) =>
     new(db ?? Db, CreatePlanner(db ?? Db), Time);
 
+  protected KitchenSettingsService CreateKitchenSettingsService(AppDbContext? db = null) =>
+    new(db ?? Db);
+
   protected Task<Guid> PizzaIdAsync(string name) =>
     Db.Pizzas.Where(p => p.Name == name).Select(p => p.Id).SingleAsync();
 

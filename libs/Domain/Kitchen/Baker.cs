@@ -31,15 +31,28 @@ public class Baker
     if (trimmedName.Length > NameMaxLength)
       throw new DomainException($"Baker name cannot exceed {NameMaxLength} characters.");
 
-    if (maxConcurrentPizzas < 1)
-      throw new DomainException("A baker must handle at least one pizza at a time.");
-
-    if (preparationTimePerPizza <= TimeSpan.Zero)
-      throw new DomainException("Preparation time must be greater than zero.");
+    EnsureValidSkill(maxConcurrentPizzas, preparationTimePerPizza);
 
     Id = Guid.NewGuid();
     Name = trimmedName;
     MaxConcurrentPizzas = maxConcurrentPizzas;
     PreparationTimePerPizza = preparationTimePerPizza;
+  }
+
+  public void Update(int maxConcurrentPizzas, TimeSpan preparationTimePerPizza)
+  {
+    EnsureValidSkill(maxConcurrentPizzas, preparationTimePerPizza);
+
+    MaxConcurrentPizzas = maxConcurrentPizzas;
+    PreparationTimePerPizza = preparationTimePerPizza;
+  }
+
+  private static void EnsureValidSkill(int maxConcurrentPizzas, TimeSpan preparationTimePerPizza)
+  {
+    if (maxConcurrentPizzas < 1)
+      throw new DomainException("A baker must handle at least one pizza at a time.");
+
+    if (preparationTimePerPizza <= TimeSpan.Zero)
+      throw new DomainException("Preparation time must be greater than zero.");
   }
 }

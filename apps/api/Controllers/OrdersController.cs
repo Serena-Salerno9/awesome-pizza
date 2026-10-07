@@ -1,5 +1,6 @@
 using Api.Contracts;
 using Application.Orders;
+using Domain.Orders;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
@@ -29,6 +30,9 @@ public class OrdersController(IOrderService orders) : ControllerBase
 
     return OrderResponse.From(tracking);
   }
+
+  [HttpGet("limits")]
+  public OrderLimitsResponse GetLimits() => new(Order.MaxPizzasPerOrder);
 
   [HttpGet]
   public async Task<IReadOnlyList<OrderResponse>> GetActive(CancellationToken ct) =>

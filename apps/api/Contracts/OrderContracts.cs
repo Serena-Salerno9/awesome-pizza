@@ -16,3 +16,5 @@ public sealed record OrderResponse(string Code, OrderStatus Status, DateTimeOffs
   public static OrderResponse From(OrderTracking tracking) =>
     new(tracking.Code, tracking.Status, tracking.EstimatedReadyAt, tracking.ReadyAt);
 }
+
+public sealed record OrderLimitsResponse(int MaxPizzasPerOrder);

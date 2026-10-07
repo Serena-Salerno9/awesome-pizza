@@ -13,5 +13,5 @@ public class PlanningOptions
   public const string SectionName = "Planning";
 
   public PlanningPolicy Policy { get; set; } = PlanningPolicy.Backfill;
-  public int BackfillToleranceMinutes { get; set; } = 2;
+  public int BackfillToleranceMinutes { get; set; } = 5;
 }

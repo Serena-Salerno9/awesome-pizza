@@ -14,12 +14,14 @@ public static class DependencyInjection
   {
     ArgumentNullException.ThrowIfNull(planning);
 
+    services.AddSingleton(planning);
     services.AddSingleton(CreatePlanner(planning));
     services.AddSingleton(TimeProvider.System);
     services.AddSingleton<KitchenPlanBuilder>();
     services.AddScoped<KitchenPlanner>();
     services.AddScoped<IOrderService, OrderService>();
     services.AddScoped<IKitchenService, KitchenService>();
+    services.AddScoped<IKitchenSettingsService, KitchenSettingsService>();
     services.AddScoped<IMenuService, MenuService>();
 
     return services;
