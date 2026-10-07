@@ -1,4 +1,5 @@
 using System;
+using Application.Orders;
 using Application.Planning;
 using Domain.Kitchen.Planning;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,10 @@ public static class DependencyInjection
     ArgumentNullException.ThrowIfNull(planning);
 
     services.AddSingleton(CreatePlanner(planning));
+    services.AddSingleton(TimeProvider.System);
+    services.AddSingleton<KitchenPlanBuilder>();
+    services.AddScoped<KitchenPlanner>();
+    services.AddScoped<IOrderService, OrderService>();
 
     return services;
   }
