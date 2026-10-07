@@ -152,7 +152,7 @@ public class OrderServiceTests(DatabaseFixture fixture) : DatabaseTestBase(fixtu
   {
     await OrderAsync("Margherita", 2);
     var kitchen = CreateKitchenService();
-    var plan = await kitchen.StartNextBatchAsync();
+    var plan = await AssignBatchAsync(kitchen);
     Advance(9);
     await kitchen.MarkReadyAsync(plan.Batches.Single().BatchId!.Value);
 
@@ -176,7 +176,7 @@ public class OrderServiceTests(DatabaseFixture fixture) : DatabaseTestBase(fixtu
     await OrderAsync("Margherita", 2);
     Advance(1);
     await OrderAsync("Marinara", 1);
-    await CreateKitchenService().StartNextBatchAsync();
+    await AssignBatchAsync(CreateKitchenService());
 
     var active = await CreateOrderService().GetActiveAsync();
 
@@ -190,7 +190,7 @@ public class OrderServiceTests(DatabaseFixture fixture) : DatabaseTestBase(fixtu
   {
     await OrderAsync("Margherita", 4);
     var kitchen = CreateKitchenService();
-    var plan = await kitchen.StartNextBatchAsync();
+    var plan = await AssignBatchAsync(kitchen);
     Advance(20);
     await kitchen.MarkReadyAsync(plan.Batches.Single().BatchId!.Value);
     await OrderAsync("Marinara", 1);

@@ -6,7 +6,7 @@ public interface IKitchenService
 {
   Task<KitchenPlan> GetPlanAsync(CancellationToken ct = default);
 
-  Task<KitchenPlan> StartNextBatchAsync(CancellationToken ct = default);
+  Task<int> AssignDueBatchesAsync(CancellationToken ct = default);
 
   Task<bool> TakeChargeAsync(Guid batchId, CancellationToken ct = default);
 

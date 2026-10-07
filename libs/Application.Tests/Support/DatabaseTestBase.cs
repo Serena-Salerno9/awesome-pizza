@@ -38,6 +38,13 @@ public abstract class DatabaseTestBase(DatabaseFixture fixture) : IAsyncLifetime
   protected async Task<OrderTracking> OrderAsync(string pizzaName, int quantity) =>
     await CreateOrderService().CreateAsync([new OrderItem(await PizzaIdAsync(pizzaName), quantity)]);
 
+  protected static async Task<KitchenPlan> AssignBatchAsync(KitchenService kitchen)
+  {
+    Assert.Equal(1, await kitchen.AssignDueBatchesAsync());
+
+    return await kitchen.GetPlanAsync();
+  }
+
   protected void Advance(int minutes) => Time.Advance(TimeSpan.FromMinutes(minutes));
 
   protected DateTimeOffset At(int minutes) => Noon.AddMinutes(minutes);

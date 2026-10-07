@@ -46,18 +46,21 @@ public class KitchenServiceTests(DatabaseFixture fixture) : DatabaseTestBase(fix
   }
 
   [Fact]
-  public async Task StartNextBatch_WithNoOrders_Throws()
+  public async Task AssignDueBatches_WithNoOrders_AssignsNothing()
   {
-    await Assert.ThrowsAsync<DomainException>(() => CreateKitchenService().StartNextBatchAsync());
+    Assert.Equal(0, await CreateKitchenService().AssignDueBatchesAsync());
+
+    await using var db = _fixture.CreateContext();
+    Assert.False(await db.Batches.AnyAsync());
   }
 
   [Fact]
-  public async Task StartNextBatch_PersistsBatchAndStartsPreparationOfItsOrders()
+  public async Task AssignDueBatches_PersistsBatchAndStartsPreparationOfItsOrders()
   {
     await OrderAsync("Margherita", 2);
     await OrderAsync("Marinara", 1);
 
-    var plan = await CreateKitchenService().StartNextBatchAsync();
+    var plan = await AssignBatchAsync(CreateKitchenService());
 
     await using var db = _fixture.CreateContext();
     var batch = await db.Batches.Include(b => b.Lines).SingleAsync();
@@ -75,11 +78,11 @@ public class KitchenServiceTests(DatabaseFixture fixture) : DatabaseTestBase(fix
   }
 
   [Fact]
-  public async Task StartNextBatch_WithLargeOrder_AssignsOnlyFirstBatchAndKeepsRestInPlan()
+  public async Task AssignDueBatches_WithLargeOrder_AssignsOnlyFirstBatchAndKeepsRestInPlan()
   {
     await OrderAsync("Margherita", 6);
 
-    var plan = await CreateKitchenService().StartNextBatchAsync();
+    var plan = await AssignBatchAsync(CreateKitchenService());
 
     Assert.Equal([4, 2], plan.Batches.Select(b => b.Lines.Sum(l => l.Quantity)));
     Assert.NotNull(plan.Batches[0].BatchId);
@@ -91,14 +94,14 @@ public class KitchenServiceTests(DatabaseFixture fixture) : DatabaseTestBase(fix
   }
 
   [Fact]
-  public async Task StartNextBatch_WhenBakerCannotStartYet_Throws()
+  public async Task AssignDueBatches_WhenBakerCannotStartYet_AssignsNothing()
   {
     await OrderAsync("Margherita", 4);
     await OrderAsync("Marinara", 1);
     var kitchen = CreateKitchenService();
-    await kitchen.StartNextBatchAsync();
+    await AssignBatchAsync(kitchen);
 
-    await Assert.ThrowsAsync<DomainException>(() => kitchen.StartNextBatchAsync());
+    Assert.Equal(0, await kitchen.AssignDueBatchesAsync());
 
     await using var db = _fixture.CreateContext();
     Assert.Equal(1, await db.Batches.CountAsync());
@@ -106,16 +109,16 @@ public class KitchenServiceTests(DatabaseFixture fixture) : DatabaseTestBase(fix
   }
 
   [Fact]
-  public async Task StartNextBatch_AfterPreviousBatchIsReady_StartsNextOne()
+  public async Task AssignDueBatches_AfterPreviousBatchIsReady_AssignsNextOne()
   {
     await OrderAsync("Margherita", 4);
     await OrderAsync("Marinara", 1);
     var kitchen = CreateKitchenService();
-    var first = await kitchen.StartNextBatchAsync();
+    var first = await AssignBatchAsync(kitchen);
     Advance(16);
     await kitchen.MarkReadyAsync(first.Batches[0].BatchId!.Value);
 
-    var plan = await kitchen.StartNextBatchAsync();
+    var plan = await AssignBatchAsync(kitchen);
 
     Assert.NotNull(Assert.Single(plan.Batches).BatchId);
     await using var db = _fixture.CreateContext();
@@ -134,7 +137,7 @@ public class KitchenServiceTests(DatabaseFixture fixture) : DatabaseTestBase(fix
   {
     await OrderAsync("Margherita", 2);
     var kitchen = CreateKitchenService();
-    var plan = await kitchen.StartNextBatchAsync();
+    var plan = await AssignBatchAsync(kitchen);
     Advance(2);
 
     Assert.True(await kitchen.TakeChargeAsync(plan.Batches.Single().BatchId!.Value));
@@ -148,7 +151,7 @@ public class KitchenServiceTests(DatabaseFixture fixture) : DatabaseTestBase(fix
   {
     await OrderAsync("Margherita", 2);
     var kitchen = CreateKitchenService();
-    var batchId = (await kitchen.StartNextBatchAsync()).Batches.Single().BatchId!.Value;
+    var batchId = (await AssignBatchAsync(kitchen)).Batches.Single().BatchId!.Value;
     await kitchen.TakeChargeAsync(batchId);
 
     await Assert.ThrowsAsync<DomainException>(() => kitchen.TakeChargeAsync(batchId));
@@ -165,7 +168,7 @@ public class KitchenServiceTests(DatabaseFixture fixture) : DatabaseTestBase(fix
   {
     await OrderAsync("Margherita", 2);
     var kitchen = CreateKitchenService();
-    var batchId = (await kitchen.StartNextBatchAsync()).Batches.Single().BatchId!.Value;
+    var batchId = (await AssignBatchAsync(kitchen)).Batches.Single().BatchId!.Value;
     Advance(10);
 
     Assert.True(await kitchen.MarkReadyAsync(batchId));
@@ -183,7 +186,7 @@ public class KitchenServiceTests(DatabaseFixture fixture) : DatabaseTestBase(fix
     await OrderAsync("Margherita", 2);
     await OrderAsync("Marinara", 1);
     var kitchen = CreateKitchenService();
-    var batchId = (await kitchen.StartNextBatchAsync()).Batches.Single().BatchId!.Value;
+    var batchId = (await AssignBatchAsync(kitchen)).Batches.Single().BatchId!.Value;
     Advance(10);
 
     await kitchen.MarkReadyAsync(batchId);
@@ -197,7 +200,7 @@ public class KitchenServiceTests(DatabaseFixture fixture) : DatabaseTestBase(fix
   {
     await OrderAsync("Margherita", 6);
     var kitchen = CreateKitchenService();
-    var firstId = (await kitchen.StartNextBatchAsync()).Batches[0].BatchId!.Value;
+    var firstId = (await AssignBatchAsync(kitchen)).Batches[0].BatchId!.Value;
     Advance(16);
 
     await kitchen.MarkReadyAsync(firstId);
@@ -205,7 +208,7 @@ public class KitchenServiceTests(DatabaseFixture fixture) : DatabaseTestBase(fix
     await using (var db = _fixture.CreateContext())
       Assert.Equal(OrderStatus.InPreparation, (await db.Orders.SingleAsync()).Status);
 
-    var secondId = (await kitchen.StartNextBatchAsync()).Batches.Single().BatchId!.Value;
+    var secondId = (await AssignBatchAsync(kitchen)).Batches.Single().BatchId!.Value;
     Advance(10);
     await kitchen.MarkReadyAsync(secondId);
 
@@ -222,7 +225,7 @@ public class KitchenServiceTests(DatabaseFixture fixture) : DatabaseTestBase(fix
   {
     await OrderAsync("Margherita", 2);
     var kitchen = CreateKitchenService();
-    var batchId = (await kitchen.StartNextBatchAsync()).Batches.Single().BatchId!.Value;
+    var batchId = (await AssignBatchAsync(kitchen)).Batches.Single().BatchId!.Value;
     await kitchen.MarkReadyAsync(batchId);
 
     await Assert.ThrowsAsync<DomainException>(() => kitchen.MarkReadyAsync(batchId));

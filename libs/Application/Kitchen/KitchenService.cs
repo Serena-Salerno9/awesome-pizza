@@ -12,15 +12,24 @@ public sealed class KitchenService(AppDbContext db, KitchenPlanner planner, Time
   public Task<KitchenPlan> GetPlanAsync(CancellationToken ct = default) =>
     planner.GetPlanAsync(ct);
 
-  public async Task<KitchenPlan> StartNextBatchAsync(CancellationToken ct = default)
+  public async Task<int> AssignDueBatchesAsync(CancellationToken ct = default)
+  {
+    var assigned = 0;
+
+    while (await TryStartNextBatchAsync(ct))
+      assigned++;
+
+    return assigned;
+  }
+
+  private async Task<bool> TryStartNextBatchAsync(CancellationToken ct)
   {
     var plan = await planner.GetPlanAsync(ct);
-    var next = plan.Batches.FirstOrDefault(b => b.BatchId is null)
-      ?? throw new DomainException("There are no batches to start.");
+    var next = plan.Batches.FirstOrDefault(b => b.BatchId is null);
 
     var now = time.GetUtcNow();
-    if (next.EstimatedStartAt > now)
-      throw new DomainException("The baker cannot start a new batch yet.");
+    if (next is null || next.EstimatedStartAt > now)
+      return false;
 
     var workstation = await db.Workstations.SingleAsync(ct);
     var lineIds = next.Lines.Select(l => l.OrderLineId).ToList();
@@ -42,7 +51,7 @@ public sealed class KitchenService(AppDbContext db, KitchenPlanner planner, Time
 
     await db.SaveChangesAsync(ct);
 
-    return await planner.GetPlanAsync(ct);
+    return true;
   }
 
   public async Task<bool> TakeChargeAsync(Guid batchId, CancellationToken ct = default)

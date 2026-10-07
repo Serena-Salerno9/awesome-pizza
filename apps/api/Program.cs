@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Api.Errors;
+using Api.Workers;
 using Application;
 using Application.Planning;
 using Infrastructure.Persistence;
@@ -30,6 +31,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 var planning = builder.Configuration.GetSection(PlanningOptions.SectionName).Get<PlanningOptions>() ?? new PlanningOptions();
 builder.Services.AddApplication(planning);
+
+builder.Services.AddOptions<BatchAssignmentOptions>()
+  .BindConfiguration(BatchAssignmentOptions.SectionName)
+  .ValidateDataAnnotations()
+  .ValidateOnStart();
+builder.Services.AddHostedService<BatchAssignmentWorker>();
 
 var app = builder.Build();
 
