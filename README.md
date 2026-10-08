@@ -51,7 +51,5 @@ Da Swagger: `GET /api/v1/menu` → `POST /api/v1/orders` con `{"items":[{"pizzaI
 - Autenticazione e ruoli, con le chiamate del pizzaiolo riservate.
 - Più pizzaioli e forni, forno a legna.
 - Tempi per tipo di pizza, calibrati sui dati reali.
-- Ore stimate salvate e assegnazione protetta con più istanze dell'API.
 - Annullamento dell'ordine con token segreto e stato `Completed`.
 - Frontend React: tabellone per i clienti e vista del pizzaiolo.
-- Notifiche al cliente, CI/CD, log e metriche, test end-to-end e di carico.
