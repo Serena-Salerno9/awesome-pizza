@@ -1,3 +1,4 @@
+using Application.Kitchen;
 using Application.Tests.Support;
 using Domain.Exceptions;
 using Domain.Orders;
@@ -106,6 +107,27 @@ public class KitchenServiceTests(DatabaseFixture fixture) : DatabaseTestBase(fix
     await using var db = _fixture.CreateContext();
     Assert.Equal(1, await db.Batches.CountAsync());
     Assert.Equal(OrderStatus.Queued, (await db.Orders.SingleAsync(o => o.DailyNumber == 2)).Status);
+  }
+
+  [Fact]
+  public async Task AssignDueBatches_WhenAnAssignedBatchIsNotReadyYet_AssignsNothingUntilItIsReady()
+  {
+    await CreateKitchenSettingsService().UpdateAsync(
+      new KitchenSettings(8, TimeSpan.FromMinutes(3), 4, TimeSpan.FromMinutes(4)));
+    await OrderAsync("Margherita", 4);
+    await OrderAsync("Marinara", 1);
+    var kitchen = CreateKitchenService();
+    var first = await AssignBatchAsync(kitchen);
+    Advance(13);
+
+    Assert.Equal(0, await kitchen.AssignDueBatchesAsync());
+
+    await using (var db = _fixture.CreateContext())
+      Assert.Equal(1, await db.Batches.CountAsync());
+
+    await kitchen.MarkReadyAsync(first.Batches[0].BatchId!.Value);
+
+    Assert.Equal(1, await kitchen.AssignDueBatchesAsync());
   }
 
   [Fact]

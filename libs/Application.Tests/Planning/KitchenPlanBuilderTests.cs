@@ -26,7 +26,7 @@ public class KitchenPlanBuilderTests
       At(earliestStartMinutes),
       items.Select(i => new BatchLineSnapshot(i.Line.Id, i.Order.Id, i.Line.PizzaName, i.Quantity)).ToList());
 
-  private static KitchenSnapshot CreateSnapshot(OrderSnapshot[] orders, params BatchSnapshot[] openBatches) =>
+  private static QueueSnapshot CreateSnapshot(OrderSnapshot[] orders, params BatchSnapshot[] openBatches) =>
     new(TestBaker, SmallOven, At(0), openBatches, orders);
 
   private static KitchenPlanBuilder CreateBuilder(IBatchPlanner? planner = null) =>
@@ -208,9 +208,9 @@ public class KitchenPlanBuilderTests
     Assert.Equal(At(10), plan.Batches[0].EstimatedReadyAt);
 
     Assert.Null(plan.Batches[1].BatchId);
-    Assert.Equal(At(2), plan.Batches[1].EstimatedStartAt);
-    Assert.Equal(At(4), plan.Batches[1].EstimatedBakeStartAt);
-    Assert.Equal(At(12), plan.Batches[1].EstimatedReadyAt);
+    Assert.Equal(At(10), plan.Batches[1].EstimatedStartAt);
+    Assert.Equal(At(12), plan.Batches[1].EstimatedBakeStartAt);
+    Assert.Equal(At(20), plan.Batches[1].EstimatedReadyAt);
   }
 
   [Fact]
@@ -250,8 +250,8 @@ public class KitchenPlanBuilderTests
 
     var plan = CreateBuilder().Build(CreateSnapshot([order]));
 
-    Assert.Equal([At(14), At(22)], plan.Batches.Select(b => b.EstimatedReadyAt));
-    Assert.Equal(At(22), ReadyAt(plan, order));
+    Assert.Equal([At(14), At(24)], plan.Batches.Select(b => b.EstimatedReadyAt));
+    Assert.Equal(At(24), ReadyAt(plan, order));
   }
 
   [Fact]
@@ -274,8 +274,8 @@ public class KitchenPlanBuilderTests
 
     var plan = CreateBuilder().Build(CreateSnapshot([order], open));
 
-    Assert.Equal([At(10), At(12)], plan.Batches.Select(b => b.EstimatedReadyAt));
-    Assert.Equal(At(12), ReadyAt(plan, order));
+    Assert.Equal([At(10), At(20)], plan.Batches.Select(b => b.EstimatedReadyAt));
+    Assert.Equal(At(20), ReadyAt(plan, order));
   }
 
   [Fact]
@@ -289,8 +289,8 @@ public class KitchenPlanBuilderTests
     var fifo = CreateBuilder(new FifoBatchPlanner()).Build(snapshot);
     var backfill = CreateBuilder(new BackfillBatchPlanner(TimeSpan.FromMinutes(2))).Build(snapshot);
 
-    Assert.Equal([At(12), At(20), At(20)], [ReadyAt(fifo, a), ReadyAt(fifo, b), ReadyAt(fifo, c)]);
-    Assert.Equal([At(14), At(22), At(14)], [ReadyAt(backfill, a), ReadyAt(backfill, b), ReadyAt(backfill, c)]);
+    Assert.Equal([At(12), At(26), At(26)], [ReadyAt(fifo, a), ReadyAt(fifo, b), ReadyAt(fifo, c)]);
+    Assert.Equal([At(14), At(26), At(14)], [ReadyAt(backfill, a), ReadyAt(backfill, b), ReadyAt(backfill, c)]);
   }
 
   [Fact]

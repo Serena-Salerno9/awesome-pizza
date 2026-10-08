@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Orders;
 
-public sealed class OrderService(AppDbContext db, KitchenPlanner planner, TimeProvider time) : IOrderService
+public sealed class OrderService(AppDbContext db, QueuePlanner planner, TimeProvider time) : IOrderService
 {
   private const int MaxCreateAttempts = 3;
 

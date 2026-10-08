@@ -52,6 +52,6 @@ public abstract class DatabaseTestBase(DatabaseFixture fixture) : IAsyncLifetime
 
   protected DateTimeOffset At(int minutes) => Noon.AddMinutes(minutes);
 
-  private KitchenPlanner CreatePlanner(AppDbContext db) =>
+  private QueuePlanner CreatePlanner(AppDbContext db) =>
     new(db, new KitchenPlanBuilder(new FifoBatchPlanner()), Time);
 }

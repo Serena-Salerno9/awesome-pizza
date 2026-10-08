@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Planning;
 
-public sealed class KitchenPlanner(AppDbContext db, KitchenPlanBuilder builder, TimeProvider time)
+public sealed class QueuePlanner(AppDbContext db, KitchenPlanBuilder builder, TimeProvider time)
 {
   public async Task<KitchenPlan> GetPlanAsync(CancellationToken ct = default)
   {
@@ -14,7 +14,7 @@ public sealed class KitchenPlanner(AppDbContext db, KitchenPlanBuilder builder, 
     return builder.Build(snapshot);
   }
 
-  private async Task<KitchenSnapshot> LoadSnapshotAsync(CancellationToken ct)
+  private async Task<QueueSnapshot> LoadSnapshotAsync(CancellationToken ct)
   {
     var workstation = await db.Workstations
       .Include(w => w.FkBakerNavigation)
@@ -40,7 +40,7 @@ public sealed class KitchenPlanner(AppDbContext db, KitchenPlanBuilder builder, 
       .Select(g => new { LineId = g.Key, Quantity = g.Sum(x => x.Quantity) })
       .ToDictionaryAsync(x => x.LineId, x => x.Quantity, ct);
 
-    return new KitchenSnapshot(
+    return new QueueSnapshot(
       workstation.FkBakerNavigation,
       workstation.FkOvenNavigation,
       time.GetUtcNow(),

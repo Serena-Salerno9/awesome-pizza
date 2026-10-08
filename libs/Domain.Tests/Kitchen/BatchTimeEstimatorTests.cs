@@ -107,21 +107,10 @@ public class BatchTimeEstimatorTests
 
   #endregion
 
-  #region Pizze aperte
+  #region Infornate in sequenza
 
   [Fact]
-  public void Estimate_PreparesNextBatchWhileCurrentOneBakes()
-  {
-    var baker = CreateBaker(preparationMinutes: 2, maxConcurrentPizzas: 3);
-    var oven = CreateOven(capacity: 2, bakingMinutes: 5);
-
-    var result = Estimate(baker, oven, now: 0, (2, 0), (2, 0));
-
-    Assert.Equal(At(4), result[1].EstimatedStartAt);
-  }
-
-  [Fact]
-  public void Estimate_WhenOpenPizzasAreFull_BakerWaitsForOvenExit()
+  public void Estimate_NextBatchStartsWhenPreviousOneIsReady()
   {
     var baker = CreateBaker(preparationMinutes: 2, maxConcurrentPizzas: 3);
     var oven = CreateOven(capacity: 2, bakingMinutes: 5);
@@ -129,7 +118,7 @@ public class BatchTimeEstimatorTests
     var result = Estimate(baker, oven, now: 0, (2, 0), (2, 0));
 
     Assert.Equal(new BatchEstimate(At(0), At(4), At(9)), result[0]);
-    Assert.Equal(new BatchEstimate(At(4), At(11), At(16)), result[1]);
+    Assert.Equal(new BatchEstimate(At(9), At(13), At(18)), result[1]);
   }
 
   #endregion
@@ -149,15 +138,15 @@ public class BatchTimeEstimatorTests
   }
 
   [Fact]
-  public void Estimate_ExpertBaker_IsLimitedByPreparation()
+  public void Estimate_ExpertBaker_RunsBatchesOneAfterTheOther()
   {
     var expert = CreateBaker(preparationMinutes: 1, maxConcurrentPizzas: 12);
     var oven = CreateOven(capacity: 8, bakingMinutes: 4);
 
     var result = Estimate(expert, oven, now: 0, (8, 0), (8, 0), (8, 0));
 
-    Assert.Equal([At(0), At(8), At(16)], result.Select(b => b.EstimatedStartAt));
-    Assert.Equal([At(12), At(20), At(28)], result.Select(b => b.EstimatedReadyAt));
+    Assert.Equal([At(0), At(12), At(24)], result.Select(b => b.EstimatedStartAt));
+    Assert.Equal([At(12), At(24), At(36)], result.Select(b => b.EstimatedReadyAt));
   }
 
   [Fact]
@@ -168,8 +157,8 @@ public class BatchTimeEstimatorTests
 
     var result = Estimate(expert, smallOven, now: 0, (6, 0), (6, 0), (6, 0));
 
-    Assert.Equal([At(6), At(14), At(22)], result.Select(b => b.EstimatedBakeStartAt));
-    Assert.Equal([At(14), At(22), At(30)], result.Select(b => b.EstimatedReadyAt));
+    Assert.Equal([At(6), At(20), At(34)], result.Select(b => b.EstimatedBakeStartAt));
+    Assert.Equal([At(14), At(28), At(42)], result.Select(b => b.EstimatedReadyAt));
   }
 
   #endregion
@@ -177,7 +166,7 @@ public class BatchTimeEstimatorTests
   #region Forno
 
   [Fact]
-  public void Estimate_WhenPostsAreEnough_BatchesBakeTogether()
+  public void Estimate_WhenPostsAreEnough_NextBatchStillWaitsForPreviousOne()
   {
     var baker = CreateBaker(preparationMinutes: 1, maxConcurrentPizzas: 12);
     var oven = CreateOven(capacity: 8, bakingMinutes: 10);
@@ -185,18 +174,7 @@ public class BatchTimeEstimatorTests
     var result = Estimate(baker, oven, now: 0, (3, 0), (3, 0));
 
     Assert.Equal(new BatchEstimate(At(0), At(3), At(13)), result[0]);
-    Assert.Equal(new BatchEstimate(At(3), At(6), At(16)), result[1]);
-  }
-
-  [Fact]
-  public void Estimate_WhenOvenIsFull_PreparedBatchWaitsForPosts()
-  {
-    var baker = CreateBaker(preparationMinutes: 1, maxConcurrentPizzas: 16);
-    var oven = CreateOven(capacity: 6, bakingMinutes: 8);
-
-    var result = Estimate(baker, oven, now: 0, (6, 0), (6, 0));
-
-    Assert.Equal(new BatchEstimate(At(6), At(14), At(22)), result[1]);
+    Assert.Equal(new BatchEstimate(At(13), At(16), At(26)), result[1]);
   }
 
   [Fact]
@@ -208,7 +186,7 @@ public class BatchTimeEstimatorTests
     var result = Estimate(baker, oven, now: 0, (6, 0), (2, 0));
 
     Assert.Equal(At(6), result[0].EstimatedBakeStartAt);
-    Assert.Equal(At(14), result[1].EstimatedBakeStartAt);
+    Assert.Equal(At(16), result[1].EstimatedBakeStartAt);
   }
 
   #endregion
@@ -224,11 +202,11 @@ public class BatchTimeEstimatorTests
   }
 
   [Fact]
-  public void Estimate_FutureBatchAfterAssignedOne_StartsWhenBakerIsFree()
+  public void Estimate_FutureBatchAfterAssignedOne_StartsWhenAssignedOneIsReady()
   {
     var result = Estimate(CreateBaker(), CreateOven(), now: 0, (2, -2), (2, 0));
 
-    Assert.Equal(new BatchEstimate(At(2), At(6), At(11)), result[1]);
+    Assert.Equal(new BatchEstimate(At(7), At(11), At(16)), result[1]);
   }
 
   #endregion
@@ -244,7 +222,7 @@ public class BatchTimeEstimatorTests
   }
 
   [Fact]
-  public void Estimate_WhenBatchIsOverdue_HoldsOvenForNextBatches()
+  public void Estimate_WhenBatchIsOverdue_NextBatchStartsAfterNow()
   {
     var baker = CreateBaker(preparationMinutes: 2, maxConcurrentPizzas: 2);
     var oven = CreateOven(capacity: 1, bakingMinutes: 5);
@@ -252,7 +230,7 @@ public class BatchTimeEstimatorTests
     var result = Estimate(baker, oven, now: 8, (1, 0), (1, 1));
 
     Assert.Equal(new BatchEstimate(At(0), At(2), At(8)), result[0]);
-    Assert.Equal(new BatchEstimate(At(2), At(8), At(13)), result[1]);
+    Assert.Equal(new BatchEstimate(At(8), At(10), At(15)), result[1]);
   }
 
   #endregion
