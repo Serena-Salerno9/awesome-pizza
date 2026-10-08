@@ -45,6 +45,7 @@ Da Swagger: `GET /api/v1/menu` → `POST /api/v1/orders` con `{"items":[{"pizzaI
 - Una sola postazione e forno elettrico: con il forno a legna il pizzaiolo non potrebbe preparare durante la cottura.
 - Nessun annullamento dell'ordine.
 - Un ritardo del pizzaiolo emerge solo alla scadenza dell'ora stimata.
+- -Il codice giornaliero si rompe a cavallo di mezzanotte.
 
 ## Con più tempo a disposizione
 
